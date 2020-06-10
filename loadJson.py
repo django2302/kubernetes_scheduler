@@ -1,14 +1,19 @@
-# Python program to read 
-# json file 
+# Python program to read
+# json file
 
 
-import json 
+import json
+import os
 
-# JSON file 
-f = open ('newValues.json', "r") 
-  
-# Reading from file 
-data = json.loads(f.read()) 
+#execute a kubectl command
+cmd='kubectl get nodes -o json > /tmp/newValues.json'
+os.system(cmd)
+
+# JSON file
+f = open ('/tmp/newValues.json', "r")
+
+# Reading from file
+data = json.loads(f.read())
 
 hostname  =[]
 cpu = []
@@ -22,11 +27,11 @@ for p in data['items']:
         memory.append(p['status']['allocatable']['memory'])
 f.close()
 
-length = len(memory) 
-   
-# Iterating the index 
-# same as 'for i in range(len(list))' 
-for i in range(length):     
+length = len(memory)
+
+# Iterating the index
+# same as 'for i in range(len(list))'
+for i in range(length):
     if memory[i].endswith('Ki'):
         memory[i]=memory[i][:-2]
 
