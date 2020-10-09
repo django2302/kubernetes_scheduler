@@ -1,19 +1,23 @@
 import numpy as np
+import sys
+import os
+import paramiko
+import math
 
-data = np.array([
-                [10,20,10,10], 
-                [10,3,2,3], 
-                [30,10,30,10]                
-                ])
+#data = np.array([[10,20,10,10],[10,3,2,3],[30,10,30,10]])
 
-weight =  [20, 15, 40, 25]
+weight =  [30, 20, 15, 15, 15]
 
 def normalisation (data):      
-    norm = np.linalg.norm(data)
-    normal_array = data/norm
-    print("Normalised Array :")
-    print(normal_array)
-    return normal_array
+    sqrMtrx = np.square(data)
+    sumMatrx = np.sum(sqrMtrx , axis=0)
+    sqRoot = np.sqrt(sumMatrx)
+    sqRoot = np.around(sqRoot , decimals=2)
+    divideArray = np.divide(data , sqRoot)
+    print("Normalised Array is :")
+    print(divideArray)
+
+    return divideArray
 
 
 #Calculate Weighted Normalised matrix 
@@ -44,8 +48,9 @@ def Euclidian_best (data , Id_best):
     Tmp = 0
     for i in range(n):
         for j in range(m):
-            Tmp = Tmp + (data[i][j]-Id_best[i])**2
-        Tmp = Tmp**(1/2)
+            Tmp = Tmp + (data[i][j]-Id_best[j])**2
+        Tmp = math.sqrt(Tmp)
+	#Tmp = Tmp**(1/2)
         Euc_best.append(Tmp)
     print("Best Euclidiean Distance : ")
     print(Euc_best)
@@ -57,8 +62,9 @@ def Euclidian_worst (data , Id_worst):
     Tmp = 0
     for i in range(n):
         for j in range(m):
-            Tmp = Tmp + (data[i][j]-Id_worst[i])**2
-        Tmp = Tmp**(1/2)
+            Tmp = Tmp + (data[i][j]-Id_worst[j])**2
+        Tmp = math.sqrt(Tmp)
+	#Tmp = Tmp**(1/2)
         Euc_worst.append(Tmp)
     print("worst Euclidiean Distance : ")
     print(Euc_worst)
@@ -76,9 +82,46 @@ def performance_score (Id_best, Id_worst):
     print(per_score)
     return per_score
 
+def connect (host):	
+	    #system values in order of CPU , RAM, Storage, Network
+	    system_values = []
+
+            # Connect to remote host
+            client = paramiko.SSHClient()
+            client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            client.connect(host, username='anurag', password='anurag')
+
+            # Setup sftp connection and transmit this script
+            #sftp = client.open_sftp()
+            #sftp.put(__file__, '/tmp/CPU.py')
+            #sftp.close()
+
+            
+            # SSHClient.exec_command() returns the tuple (stdin,stdout,stderr)
+            stdout = client.exec_command('python /home/anurag/systemConfiguration.py')[1]
+            for line in stdout:
+                # Process each line in the remote output
+                system_values.append(line)
+
+            client.close()
+            system_values = [int(i) for i in system_values]
+            return (system_values)
+	    sys.exit(0)
+            
+
 if __name__ == "__main__":
+    hosts = ['192.168.56.102','192.168.56.103','192.168.56.104']
+    systemValues = []
+    for h in hosts:
+		systemValues.append(connect(h))
+	#systemValues = list(map(int, systemValues))
+	
+    data = np.array(systemValues)
     print ("Input Data is : ")
     print(data)
+
+    
+    #print(data)
     
     print("Weight Of the Matrix is : ")
     print(weight)
@@ -105,3 +148,5 @@ if __name__ == "__main__":
     BestAlternate = PerScore.index(max(PerScore))
 
     print("Best alternate is : " + str(BestAlternate + 1 ))
+
+
